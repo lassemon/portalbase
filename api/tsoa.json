@@ -1,0 +1,25 @@
+{
+  "swagger": {
+    "basePath": "/api",
+    "outputDirectory": "./dist",
+    "entryFile": "./src/server.ts",
+    "consumes": [
+      "application/json"
+    ],
+    "produces": [
+      "application/json"
+    ],
+    "schemes": [
+      "http",
+      "https"
+    ]
+  },
+  "routes": {
+    "basePath": "/api",
+    "entryFile": "./src/server.ts",
+    "routesDir": "./src",
+    "middleware": "express",
+    "middlewareTemplate": "./src/security/passport-auth-template.ts",
+    "authenticationModule": "./src/security/Authentication"
+  }
+}

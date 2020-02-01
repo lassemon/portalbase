@@ -1,0 +1,22 @@
+{
+  "globals": {
+    "ts-jest": {
+      "tsConfig": "tsconfig.json"
+    }
+  },
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "src/controllers/*.ts",
+    "src/database/*.ts",
+    "src/errors/*.ts",
+    "src/models/*.ts",
+    "src/utils/*.ts"
+  ],
+  "moduleFileExtensions": ["ts", "js"],
+  "moduleDirectories": ["node_modules", "src"],
+  "transform": {
+    "^.+\\.(ts)$": "ts-jest"
+  },
+  "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(js?|ts?)$",
+  "testEnvironment": "node"
+}
