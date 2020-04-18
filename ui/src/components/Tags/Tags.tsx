@@ -1,46 +1,25 @@
-import { Chip, StyleRulesCallback, Theme, WithStyles, withStyles } from '@material-ui/core';
-import * as React from 'react';
-import { ITag } from 'types';
+import { Chip } from '@material-ui/core'
+import React from 'react'
+import { ITag } from 'types'
 
-type ClassNames = 'tagsContainer' | 'tag';
+import useStyles from './Tags.styles'
 
-const styles: StyleRulesCallback<ClassNames> = (theme: Theme) => ({
-  tagsContainer: {
-    textAlign: 'right'
-  },
-  tag: {
-    marginRight: theme.spacing.unit,
-    height: '2em',
-    fontSize: theme.typography.fontSize * 0.8
-  }
-});
-
-interface IProps extends WithStyles<typeof styles> {
-  tags: ITag[];
+interface IProps {
+  tags: ITag[]
 }
 
-class Tags extends React.PureComponent<IProps> {
+const Tags: React.FC<IProps> = props => {
+  const classes = useStyles()
 
-  public render() {
-    const { classes } = this.props;
-    const tagChips = [];
+  const { tags } = props
 
-    for (const tag of this.props.tags) {
-      tagChips.push(<Chip
-        className={classes.tag}
-        key={tag.id}
-        label={tag.name}
-        component="a"
-        clickable={true}
-      />);
-    }
+  const tagChips = []
 
-    return (
-      <div className={classes.tagsContainer}>
-        {tagChips}
-      </div>
-    );
+  for (const tag of tags) {
+    tagChips.push(<Chip className={classes.tag} key={tag.id} label={tag.name} component="a" clickable={true} />)
   }
+
+  return <div className={classes.tagsContainer}>{tagChips}</div>
 }
 
-export default withStyles(styles, { withTheme: true })(Tags);
+export default Tags

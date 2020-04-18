@@ -1,178 +1,164 @@
-import { Button, Card, CardActions, CardContent, CircularProgress, StyleRulesCallback, Theme, WithStyles, withStyles } from '@material-ui/core';
-import { toggleEditItem, updateItem } from 'actions/items';
-import ArticleItem from 'components/ArticleItem/ArticleItem';
-import ArticleItemEdit from 'components/ArticleItem/ArticleItemEdit';
-import ErrorMessage from 'components/ErrorMessage';
-import Tags from 'components/Tags';
-import VideoItem from 'components/VideoItem/VideoItem';
-import 'css/quill-custom.css';
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { Action, bindActionCreators, Dispatch } from 'redux';
-import { IItem, IItemUpdateRequest, IRootState, ITag } from 'types';
-import EditableItem from 'utils/EditableItem';
+import 'css/quill-custom.css'
 
-type ClassNames = 'card' | 'actionButton';
+import { Button, Card, CardActions, CardContent, CircularProgress } from '@material-ui/core'
+import { toggleEditItem, updateItem } from 'actions/items'
+import ArticleItem from 'components/ArticleItem/ArticleItem'
+import ArticleItemEdit from 'components/ArticleItem/ArticleItemEdit'
+import ErrorMessage from 'components/ErrorMessage'
+import Tags from 'components/Tags'
+import VideoItem from 'components/VideoItem/VideoItem'
+import React, { useEffect, useState } from 'react'
+import { connect } from 'react-redux'
+import { Action, bindActionCreators, Dispatch } from 'redux'
+import { IItem, IItemUpdateRequest, IRootState, ITag } from 'types'
+import EditableItem from 'utils/EditableItem'
 
-const styles: StyleRulesCallback<ClassNames> = (theme: Theme) => ({
-  card: {
-    minWidth: 275
-  },
-  actionButton: {
-    boxShadow: 'none'
-  }
-});
+import useStyles from './ItemContainer.styles'
 
 interface IActionProps {
-  updateItem: typeof updateItem;
-  toggleEditItem: typeof toggleEditItem;
+  updateItem: typeof updateItem
+  toggleEditItem: typeof toggleEditItem
 }
 
 interface IStateProps {
-  loadingItemUpdate: boolean;
-  itemUpdateError: boolean;
-  editingItem: boolean;
-  loggedIn: boolean;
+  loadingItemUpdate?: boolean
+  itemUpdateError?: boolean
+  editingItem?: boolean
+  loggedIn?: boolean
 }
 
-interface IProps extends WithStyles<typeof styles> {
-  item: IItem;
+interface IProps {
+  item: IItem
 }
 
-interface IState {
-  item: EditableItem;
-  itemNotValidError: boolean;
-}
+const ItemContainer: React.FC<IActionProps & IStateProps & IProps> = props => {
+  const classes = useStyles()
 
-class ItemContainer extends React.Component<IActionProps & IStateProps & IProps, IState> {
+  const {
+    item: propsItem,
+    toggleEditItem: toggleEdit,
+    updateItem: update,
+    loggedIn = false,
+    editingItem = false,
+    loadingItemUpdate = false,
+    itemUpdateError = false
+  } = props
 
-  public constructor(props: IActionProps & IStateProps & IProps) {
-    super(props);
-    this.state = {
-      item: new EditableItem(this.props.item || {}),
-      itemNotValidError: false
-    };
+  console.log('editing', editingItem)
+  const [item, setItem] = useState<EditableItem>(new EditableItem(propsItem))
+  const [itemNotValidError, setItemNotValidError] = useState(false)
+
+  useEffect(() => {
+    setItem(new EditableItem(propsItem))
+    return () => {
+      cancel()
+    }
+  }, [propsItem])
+
+  const openEditMode = () => {
+    toggleEdit(true)
   }
 
-  public componentWillUnmount() {
-    this.cancel();
+  const cancel = () => {
+    setItem(new EditableItem(propsItem || {}))
+    toggleEdit(false)
   }
 
-  public openEditMode = () => {
-    this.props.toggleEditItem(true);
-  }
-
-  public cancel = () => {
-    this.setState({
-      item: new EditableItem(this.props.item || {})
-    });
-    this.props.toggleEditItem(false);
-  }
-
-  public save = () => {
-    this.setState({
-      itemNotValidError: false
-    });
-
-    const item = this.state.item;
+  const save = () => {
+    setItemNotValidError(false)
     if (!item.hasErrors()) {
-      this.props.updateItem(this.createUpdatePayload());
+      update(createUpdatePayload())
     } else {
-      this.setState({
-        item: item.validateAll(),
-        itemNotValidError: true
-      });
+      setItem(item.validateAll())
+      setItemNotValidError(true)
     }
   }
 
-  public itemChanged = (newItem: EditableItem) => {
-    this.setState({
-      item: Object.assign(this.state.item, newItem)
-    });
+  const itemChanged = (newItem: EditableItem) => {
+    setItem(Object.assign(item, newItem))
   }
 
-  public tagsChanged = (tags: ITag[]) => {
-    const newItem = new EditableItem(this.state.item);
-    newItem.tags = tags;
-    this.setState({
-      item: newItem
-    });
+  const tagsChanged = (tags: ITag[]) => {
+    const newItem = new EditableItem(item)
+    newItem.tags = tags
+    setItem(newItem)
   }
 
-  public createUpdatePayload = (): IItemUpdateRequest => {
-    const item = this.state.item;
-    const tagUpdate = item.tags ? item.tags.map(tag => tag.id) : [];
+  const createUpdatePayload = (): IItemUpdateRequest => {
+    const tagUpdate = item.tags ? item.tags.map((tag: ITag) => tag.id) : []
     if (item) {
       return {
-        id: this.props.item.id,
-        type: this.props.item.type,
+        id: item.id,
+        type: item.type,
         title: item.title,
         description: item.description,
         content: item.content,
         tags: tagUpdate
-      };
+      }
     } else {
-      throw new Error("Item is not valid for update");
+      throw new Error('Item is not valid for update')
     }
   }
 
-  public render() {
-    const { classes } = this.props;
-    const item = this.props.item;
-    let actions;
+  let actions
 
-    if (this.props.loggedIn && this.props.editingItem) {
-      actions =
-        <CardActions>
-          <Button size="small" color="secondary" variant="contained" className={classes.actionButton} onClick={this.cancel}>Cancel</Button>
-          <Button size="small" color="primary" variant="contained" className={classes.actionButton} onClick={this.save}>Save</Button>
-        </CardActions>;
-    } else if (this.props.loggedIn) {
-      actions =
-        <CardActions>
-          <Button size="small" onClick={this.openEditMode}>Edit</Button>
-        </CardActions>;
-    }
+  if (loggedIn && editingItem) {
+    actions = (
+      <CardActions>
+        <Button size="small" color="secondary" variant="contained" className={classes.actionButton} onClick={cancel}>
+          Cancel
+        </Button>
+        <Button size="small" color="primary" variant="contained" className={classes.actionButton} onClick={save}>
+          Save
+        </Button>
+      </CardActions>
+    )
+  } else if (loggedIn) {
+    actions = (
+      <CardActions>
+        <Button size="small" onClick={openEditMode}>
+          Edit
+        </Button>
+      </CardActions>
+    )
+  }
 
-    const videoItem = (
-      <Card className={classes.card}>
-        <VideoItem item={item} />
-        {actions}
-      </Card>
-    );
+  const videoItem = (
+    <Card className={classes.card}>
+      <VideoItem item={propsItem} />
+      {actions}
+    </Card>
+  )
 
-    const articleItem = (
-      <Card className={classes.card}>
-        <CardContent>
-          {this.props.editingItem ?
-            (
-              <div>
-                <ArticleItemEdit item={this.state.item} itemChanged={this.itemChanged} />
-                <Tags tags={item.tags} edit={this.props.editingItem} tagsChanged={this.tagsChanged} />
-              </div>
-            ) : (
-              <div>
-                <ArticleItem item={item} />
-                <Tags tags={item.tags} />
-              </div>
-            )
-          }
-          {this.props.loadingItemUpdate && <CircularProgress size={25} />}
-          {this.state.itemNotValidError && <ErrorMessage error={{ message: 'Item is not valid' }} />}
-          {this.props.itemUpdateError && <ErrorMessage error={{ message: 'Item update failed' }} />}
-        </CardContent>
-        {actions}
-      </Card>
-    );
+  const articleItem = (
+    <Card className={classes.card}>
+      <CardContent>
+        {editingItem ? (
+          <div>
+            <ArticleItemEdit item={item} itemChanged={itemChanged} />
+            <Tags tags={item.tags} edit={editingItem} tagsChanged={tagsChanged} />
+          </div>
+        ) : (
+          <div>
+            <ArticleItem item={propsItem} />
+            <Tags tags={item.tags} />
+          </div>
+        )}
+        {loadingItemUpdate && <CircularProgress size={25} />}
+        {itemNotValidError && <ErrorMessage error={{ message: 'Item is not valid' }} />}
+        {itemUpdateError && <ErrorMessage error={{ message: 'Item update failed' }} />}
+      </CardContent>
+      {actions}
+    </Card>
+  )
 
-    switch (item.type) {
-      case 'video':
-        return videoItem;
-      case 'article':
-        return articleItem;
-      default:
-        return articleItem;
-    }
+  switch (item.type) {
+    case 'video':
+      return videoItem
+    case 'article':
+      return articleItem
+    default:
+      return articleItem
   }
 }
 
@@ -182,18 +168,11 @@ const mapStateToProps = (state: IRootState): Partial<IStateProps> => {
     itemUpdateError: state.items.itemUpdateError,
     editingItem: state.items.editingItem,
     loggedIn: state.auth.loggedIn
-  };
-};
-
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>): IActionProps => {
-  return bindActionCreators(
-    { toggleEditItem, updateItem },
-    dispatch
-  );
-};
+  return bindActionCreators({ toggleEditItem, updateItem }, dispatch)
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(withStyles(styles, { withTheme: true })(ItemContainer));
+export default connect(mapStateToProps, mapDispatchToProps)(ItemContainer)

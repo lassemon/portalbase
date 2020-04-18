@@ -1,27 +1,34 @@
-import { logoutReset } from 'actions/auth';
-import { globalError } from 'actions/error';
-import { AnyAction, Dispatch, Store } from "redux";
-import { IRootState } from "types";
-import { saveUser } from "utils/localStorage";
+import { logoutReset } from 'actions/auth'
+import { globalError } from 'actions/error'
+import { AnyAction, Dispatch, Middleware, MiddlewareAPI } from 'redux'
+import { IRootState } from 'types'
+import { saveUser } from 'utils/localStorage'
 
-export const userMiddleware = (store: Store<IRootState>) => (next: Dispatch<AnyAction>) => (action: AnyAction) => {
-  const previousState: IRootState = store.getState();
-  const previousUser = previousState.auth.user;
-  next(action);
-  const nextState: IRootState = store.getState();
-  const nextUser = nextState.auth.user || null;
+const userMiddleware: Middleware = ({ getState }: MiddlewareAPI) => (next: Dispatch<AnyAction>) => (
+  action: AnyAction
+) => {
+  const previousState = getState()
+  const previousUser = previousState.auth.user
+  next(action)
+  const nextState: IRootState = getState()
+  const nextUser = nextState.auth.user || null
 
   if (previousUser !== nextUser) {
-    saveUser(nextState.auth.loggedIn, nextUser);
+    saveUser(nextState.auth.loggedIn, nextUser)
   }
-};
+}
 
-export const tokenMiddleware = (store: Store<IRootState>) => (next: Dispatch<AnyAction>) => (action: AnyAction) => {
-  const isLoggedIn = store.getState().auth.loggedIn;
+const tokenMiddleware: Middleware = ({ getState, dispatch }: MiddlewareAPI) => (next: Dispatch<AnyAction>) => (
+  action: AnyAction
+) => {
+  const previousState = getState()
+  const isLoggedIn = previousState.auth.loggedIn
   if (action.error && action.payload.status === 401 && isLoggedIn) {
-    store.dispatch(logoutReset());
-    store.dispatch(globalError({ title: 'Oh no!', message: 'It seems your login expired.' }));
+    dispatch(logoutReset())
+    dispatch(globalError({ title: 'Oh no!', message: 'It seems your login expired.' }))
   } else {
-    next(action);
+    next(action)
   }
-};
+}
+
+export { userMiddleware, tokenMiddleware }

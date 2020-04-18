@@ -1,2 +1,3 @@
-import Item from './ItemView';
-export default Item;
+import Item from './ItemView'
+
+export default Item

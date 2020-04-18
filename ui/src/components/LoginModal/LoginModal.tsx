@@ -1,243 +1,179 @@
-import { Drawer, FormControl, IconButton, Input, InputAdornment, InputLabel } from '@material-ui/core';
-import Button from '@material-ui/core/Button';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import { Theme } from '@material-ui/core/styles';
-import withStyles, { StyleRulesCallback, WithStyles } from '@material-ui/core/styles/withStyles';
-import Typography from '@material-ui/core/Typography';
-import MenuIcon from '@material-ui/icons/Menu';
-import SettingsIcon from '@material-ui/icons/SettingsOutlined';
-import Visibility from '@material-ui/icons/Visibility';
-import VisibilityOff from '@material-ui/icons/VisibilityOff';
-import Modal from 'components/Modal';
-import * as React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router';
-import styled from 'styled-components';
-import { IUser } from 'types';
+import { Drawer, FormControl, IconButton, Input, InputAdornment, InputLabel } from '@material-ui/core'
+import Button from '@material-ui/core/Button'
+import CircularProgress from '@material-ui/core/CircularProgress'
+import Typography from '@material-ui/core/Typography'
+import MenuIcon from '@material-ui/icons/Menu'
+import SettingsIcon from '@material-ui/icons/SettingsOutlined'
+import Visibility from '@material-ui/icons/Visibility'
+import VisibilityOff from '@material-ui/icons/VisibilityOff'
+import Modal from 'components/Modal'
+import React, { useState } from 'react'
+import { RouteComponentProps, withRouter } from 'react-router'
+import { IUser } from 'types'
 
-type ClassNames = 'loginLogoutContainer' | 'loginTitle' | 'loginInput' | 'loginButtonLoader' | 'loginButtonBar' | 'loginModalButton' | 'logoutButton' | 'drawerContent';
-
-const styles: StyleRulesCallback<ClassNames> = (theme: Theme) => ({
-  loginLogoutContainer: {
-    display: 'flex',
-    alignItems: 'center'
-  },
-  loginTitle: {
-    flex: '0 0 100%',
-    marginTop: theme.spacing.unit,
-    marginBottom: theme.spacing.unit
-  },
-  loginInput: {
-    [theme.breakpoints.down('sm')]: {
-      flex: '0 0 100%'
-    },
-    [theme.breakpoints.up('md')]: {
-      flex: '0 0 48%'
-    },
-    marginTop: theme.spacing.unit,
-    marginBottom: theme.spacing.unit
-  },
-  loginButtonLoader: {
-    flex: '0 0 50%',
-    marginTop: theme.spacing.unit * 4
-  },
-  loginButtonBar: {
-    flex: '0 0 50%',
-    textAlign: 'right',
-    marginTop: theme.spacing.unit * 4
-  },
-  loginModalButton: {
-    marginLeft: theme.spacing.unit,
-    marginBottom: theme.spacing.unit,
-    boxShadow: 'none'
-  },
-  logoutButton: {
-    marginTop: 'auto',
-    boxShadow: 'none'
-  },
-  drawerContent: {
-    display: 'flex',
-    flex: '0 0 100%',
-    flexDirection: 'column',
-    padding: '1em',
-    background: theme.palette.primary.main,
-    color: theme.palette.primary.contrastText
-  }
-});
+import useStyles from './LoginModal.styles'
 
 interface IItemParams {
-  id: string;
+  id: string
 }
 
-interface IProps extends WithStyles<typeof styles>, RouteComponentProps<IItemParams> {
-  username: string;
-  password: string;
-  error: boolean;
-  loading: boolean;
-  loggedIn: boolean;
-  user?: IUser;
-  usernameChanged: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  passwordChanged: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  handleLogin: () => void;
-  handleLogout: () => void;
-  handleOpen?: () => void;
-  handleClose?: () => void;
+interface IProps extends RouteComponentProps<IItemParams> {
+  username: string
+  password: string
+  error: boolean
+  loading: boolean
+  loggedIn: boolean
+  user?: IUser
+  usernameChanged: (event: React.ChangeEvent<HTMLInputElement>) => void
+  passwordChanged: (event: React.ChangeEvent<HTMLInputElement>) => void
+  handleLogin: () => void
+  handleLogout: () => void
+  handleOpen?: () => void
+  handleClose?: () => void
 }
 
-interface IState {
-  open: boolean;
-  drawerOpen: boolean;
-  showPassword: boolean;
-}
+const LoginModal: React.FC<IProps> = props => {
+  const {
+    handleOpen,
+    handleClose,
+    history,
+    loggedIn,
+    user,
+    handleLogout,
+    handleLogin,
+    error,
+    loading,
+    username,
+    usernameChanged,
+    password,
+    passwordChanged
+  } = props
+  const classes = useStyles()
 
-class LoginModal extends React.PureComponent<IProps, IState> {
+  const [open, setOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
-  public constructor(props: IProps) {
-    super(props);
-    this.state = {
-      open: false,
-      drawerOpen: false,
-      showPassword: false
-    };
-  }
-
-  public handleOpen = () => {
-    this.setState({ open: true });
-    if (typeof this.props.handleOpen === 'function') {
-      this.props.handleOpen();
+  const internalHandleOpen = () => {
+    setOpen(true)
+    if (typeof handleOpen === 'function') {
+      handleOpen()
     }
   }
 
-  public handleClose = () => {
-    this.setState({ open: false });
-    if (typeof this.props.handleClose === 'function') {
-      this.props.handleClose();
+  const internalHandleClose = () => {
+    setOpen(false)
+    if (typeof handleClose === 'function') {
+      handleClose()
     }
   }
 
-  public handleClickShowPassword = () => {
-    this.setState(state => ({ showPassword: !this.state.showPassword }));
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword)
   }
 
-  public handleLogout = () => {
-    this.handleClose();
-    this.closeDrawer();
-    this.props.handleLogout();
+  const internalHandleLogout = () => {
+    internalHandleClose()
+    closeDrawer()
+    handleLogout()
   }
 
-  public openDrawer = () => {
-    this.setState({
-      'drawerOpen': true
-    });
+  const openDrawer = () => {
+    setDrawerOpen(true)
   }
 
-  public closeDrawer = () => {
-    this.setState({
-      'drawerOpen': false
-    });
+  const closeDrawer = () => {
+    setDrawerOpen(false)
   }
 
-  public manageItems = () => {
-    this.props.history.push('/items/manage');
-    this.setState({
-      'drawerOpen': false
-    });
+  const manageItems = () => {
+    history.push('/items/manage')
+    setDrawerOpen(false)
   }
 
-  public render() {
-    const { classes } = this.props;
-
-    const UserDrawer = styled('div')`
-      > button {
-        margin-bottom: .8em;
-      }
-    `;
-
-    return (
-      <div>
-        {this.props.loggedIn && this.props.user ? (
-          <div>
-            <div className={classes.loginLogoutContainer}>
-              <IconButton color="inherit" aria-label="Menu" onClick={this.openDrawer}>
-                <MenuIcon />
-              </IconButton>
+  return (
+    <div>
+      {loggedIn && user ? (
+        <div>
+          <div className={classes.loginLogoutContainer}>
+            <IconButton color="inherit" aria-label="Menu" onClick={openDrawer}>
+              <MenuIcon />
+            </IconButton>
+          </div>
+          <Drawer anchor="right" open={drawerOpen} onClose={closeDrawer}>
+            <div className={classes.drawerContent} role="button">
+              <Typography variant="h2" color="inherit" align="center" gutterBottom={true}>
+                {user.name}
+              </Typography>
+              <Button color="secondary">
+                Settings
+                <SettingsIcon />
+              </Button>
+              <Button color="secondary" onClick={manageItems}>
+                Manage Items
+              </Button>
+              <Button color="secondary">Manage Tags</Button>
+              <Button color="secondary" className={classes.logoutButton} onClick={internalHandleLogout}>
+                Logout
+              </Button>
             </div>
-            <Drawer anchor="right" open={this.state.drawerOpen} onClose={this.closeDrawer}>
-              <UserDrawer className={classes.drawerContent} role="button">
-                <Typography variant="subheading" color="inherit" align="center" gutterBottom={true}>{this.props.user.name}</Typography>
-                <Button color="secondary">
-                  Settings<SettingsIcon />
-                </Button>
-                <Button color="secondary" onClick={this.manageItems}>Manage Items</Button>
-                <Button color="secondary">Manage Tags</Button>
-                <Button color="secondary" className={classes.logoutButton} onClick={this.handleLogout}>Logout</Button>
-              </UserDrawer>
-            </Drawer>
-          </div>
-        ) : (
-            <Button color="inherit" onClick={this.handleOpen}>Login</Button>
-          )}
-        <Modal open={this.state.open && !this.props.loggedIn}
-          handleOpen={this.handleOpen}
-          handleClose={this.handleClose} >
-          <Typography variant="title" className={classes.loginTitle}>
-            HatsuPortal Login
+          </Drawer>
+        </div>
+      ) : (
+        <Button color="inherit" onClick={internalHandleOpen}>
+          Login
+        </Button>
+      )}
+      <Modal open={open && !loggedIn} handleOpen={internalHandleOpen} handleClose={handleClose}>
+        <Typography variant="h1" className={classes.loginTitle}>
+          HatsuPortal Login
         </Typography>
-          <FormControl className={classes.loginInput}>
-            <InputLabel htmlFor="login-username">Username</InputLabel>
-            <Input
-              error={this.props.error}
-              disabled={this.props.loading}
-              id="login-username"
-              value={this.props.username}
-              onChange={this.props.usernameChanged}
-            />
-          </FormControl>
-          <FormControl className={classes.loginInput}>
-            <InputLabel htmlFor="login-password">Password</InputLabel>
-            <Input
-              error={this.props.error}
-              disabled={this.props.loading}
-              id="login-password"
-              type={this.state.showPassword ? 'text' : 'password'}
-              value={this.props.password}
-              onChange={this.props.passwordChanged}
-              endAdornment={
-                <InputAdornment position="end">
-                  <IconButton
-                    aria-label="Toggle password visibility"
-                    onClick={this.handleClickShowPassword}
-                  >
-                    {this.state.showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              }
-            />
-          </FormControl>
-          <div className={classes.loginButtonLoader}>
-            {this.props.loading && <CircularProgress size={25} />}
-          </div>
-          <div className={classes.loginButtonBar}>
-            <Button
-              disabled={this.props.loading}
-              className={classes.loginModalButton}
-              color="secondary"
-              variant="contained"
-              onClick={this.handleClose}>
-              Cancel
-              </Button>
-            <Button
-              disabled={this.props.loading}
-              className={classes.loginModalButton}
-              color="primary"
-              variant="contained"
-              onClick={this.props.handleLogin}>
-              Login
-              </Button>
-          </div>
-        </Modal>
-      </div>
-    );
-  }
+        <FormControl className={classes.loginInput}>
+          <InputLabel htmlFor="login-username">Username</InputLabel>
+          <Input error={error} disabled={loading} id="login-username" value={username} onChange={usernameChanged} />
+        </FormControl>
+        <FormControl className={classes.loginInput}>
+          <InputLabel htmlFor="login-password">Password</InputLabel>
+          <Input
+            error={error}
+            disabled={loading}
+            id="login-password"
+            type={showPassword ? 'text' : 'password'}
+            value={password}
+            onChange={passwordChanged}
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton aria-label="Toggle password visibility" onClick={handleClickShowPassword}>
+                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                </IconButton>
+              </InputAdornment>
+            }
+          />
+        </FormControl>
+        <div className={classes.loginButtonLoader}>{loading && <CircularProgress size={25} />}</div>
+        <div className={classes.loginButtonBar}>
+          <Button
+            disabled={loading}
+            className={classes.loginModalButton}
+            color="secondary"
+            variant="contained"
+            onClick={internalHandleClose}
+          >
+            Cancel
+          </Button>
+          <Button
+            disabled={loading}
+            className={classes.loginModalButton}
+            color="primary"
+            variant="contained"
+            onClick={handleLogin}
+          >
+            Login
+          </Button>
+        </div>
+      </Modal>
+    </div>
+  )
 }
 
-export default withStyles(styles, { withTheme: true })(withRouter(LoginModal));
+export default withRouter(LoginModal)

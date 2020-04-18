@@ -1,3 +1,8 @@
+import './controllers/ItemController'
+import './controllers/StatusController'
+import './controllers/TagController'
+import './controllers/UserController'
+
 import * as bodyParser from 'body-parser'
 import * as cookieParser from 'cookie-parser'
 import * as express from 'express'
@@ -5,11 +10,6 @@ import * as passport from 'passport'
 import { RegisterRoutes } from 'routes'
 import Authentication from 'security/Authentication'
 import * as swaggerUI from 'swagger-ui-express'
-
-import './controllers/ItemController'
-import './controllers/StatusController'
-import './controllers/TagController'
-import './controllers/UserController'
 
 const app = express()
 const authentication = new Authentication(passport)
@@ -25,7 +25,6 @@ app.use(cookieParser())
 app.use(authentication.getPassport().initialize())
 RegisterRoutes(app, authentication.getAuthMiddleware())
 
-/* tslint:disable no-any */
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const status = err.status || err.statusCode || 500
   const body: any = {
@@ -36,7 +35,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   }
   res.status(status).json(body)
 })
-/* tslint:enable no-any */
 
 // SwaggerUI
 /* tslint:disable no-var-requires */

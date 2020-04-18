@@ -1,2 +1,3 @@
-import TextEditor from './TextEditor';
-export default TextEditor;
+import TextEditor from './TextEditor'
+
+export default TextEditor

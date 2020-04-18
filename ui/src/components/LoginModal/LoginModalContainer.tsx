@@ -1,95 +1,89 @@
-import { checkLoginStatus, login, loginReset, logout } from 'actions/auth';
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { Action, bindActionCreators, Dispatch } from 'redux';
-import { IAuthState, IRootState, IUser } from 'types';
-import LoginModal from './LoginModal';
+import { checkLoginStatus, login, loginReset, logout } from 'actions/auth'
+import React, { useState } from 'react'
+import { connect } from 'react-redux'
+import { Action, bindActionCreators, Dispatch } from 'redux'
+import { IAuthState, IRootState, IUser } from 'types'
+
+import LoginModal from './LoginModal'
 
 interface IActionProps {
-  login: typeof login;
-  loginReset: typeof loginReset;
-  logout: typeof logout;
-  checkLoginStatus: typeof checkLoginStatus;
+  login: typeof login
+  loginReset: typeof loginReset
+  logout: typeof logout
+  checkLoginStatus: typeof checkLoginStatus
 }
 
 interface IProps {
-  loginError: boolean;
-  loginLoading: boolean;
-  logoutError: boolean;
-  logoutLoading: boolean;
-  loggedIn: boolean;
-  user?: IUser;
+  loginError?: boolean
+  loginLoading?: boolean
+  logoutError?: boolean
+  logoutLoading?: boolean
+  loggedIn?: boolean
+  user?: IUser
 }
 
-interface IState {
-  username: string;
-  password: string;
-}
+const LoginModalContainer: React.FC<IActionProps & IProps> = props => {
+  const {
+    loginLoading = false,
+    logoutLoading = false,
+    loginError = false,
+    logoutError = false,
+    loginReset,
+    login,
+    loggedIn = false,
+    checkLoginStatus,
+    user,
+    logout
+  } = props
 
-class LoginModalContainer extends React.PureComponent<IActionProps & IProps, IState> {
+  const [username, setUsername] = useState('')
+  const [password, setPassword] = useState('')
 
-  public constructor(props: IActionProps & IProps) {
-    super(props);
-    this.state = {
-      username: '',
-      password: ''
-    };
+  const usernameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUsername(event.target.value)
   }
 
-  public passwordChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({
-      'password': event.target.value
-    });
+  const passwordChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(event.target.value)
   }
 
-  public usernameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({
-      'username': event.target.value
-    });
+  const handleClose = () => {
+    setUsername('')
+    setPassword('')
+    loginReset()
   }
 
-  public handleClose = () => {
-    this.setState({
-      username: '',
-      password: ''
-    });
-    this.props.loginReset();
-  }
-
-  public handleLogin = () => {
-    this.props.login(this.state.username, this.state.password);
-    let timer: number;
+  const handleLogin = () => {
+    login(username, password)
+    let timer: number
     timer = window.setInterval(() => {
-      if (this.props.loggedIn) {
-        this.props.checkLoginStatus();
+      if (loggedIn) {
+        checkLoginStatus()
       } else {
-        clearInterval(timer);
+        clearInterval(timer)
       }
-    }, 10000);
+    }, 10000)
   }
 
-  public handleLogout = () => {
-
-    this.props.logout();
+  const handleLogout = () => {
+    logout()
   }
 
-  public render() {
-
-    return (
-      <LoginModal
-        username={this.state.username}
-        password={this.state.password}
-        loading={this.props.loginLoading || this.props.logoutLoading}
-        error={this.props.loginError || this.props.logoutError}
-        loggedIn={this.props.loggedIn}
-        user={this.props.user}
-        passwordChanged={this.passwordChanged}
-        usernameChanged={this.usernameChanged}
-        handleLogin={this.handleLogin}
-        handleLogout={this.handleLogout}
-        handleClose={this.handleClose} />
-    );
-  }
+  return (
+    <LoginModal
+      username={username}
+      password={password}
+      loading={loginLoading || logoutLoading}
+      error={loginError || logoutError}
+      loggedIn={loggedIn}
+      user={user}
+      passwordChanged={passwordChanged}
+      usernameChanged={usernameChanged}
+      handleLogin={handleLogin}
+      handleLogout={handleLogout}
+      handleClose={handleClose}
+    />
+  )
 }
 
 const mapStateToProps = (state: IRootState): Partial<IAuthState> => {
@@ -100,17 +94,11 @@ const mapStateToProps = (state: IRootState): Partial<IAuthState> => {
     logoutLoading: state.auth.logoutLoading,
     loggedIn: state.auth.loggedIn,
     user: state.auth.user
-  };
-};
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>): IActionProps => {
-  return bindActionCreators(
-    { login, loginReset, logout, checkLoginStatus },
-    dispatch
-  );
-};
+  return bindActionCreators({ login, loginReset, logout, checkLoginStatus }, dispatch)
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(LoginModalContainer);
+export default connect(mapStateToProps, mapDispatchToProps)(LoginModalContainer)

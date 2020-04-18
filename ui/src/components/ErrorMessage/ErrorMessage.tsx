@@ -1,67 +1,33 @@
-import { Paper, StyleRulesCallback, Theme, Typography, withStyles, WithStyles } from '@material-ui/core';
-import * as React from 'react';
-import { IError } from 'types';
+import { Paper, Typography } from '@material-ui/core'
+import React from 'react'
+import { IError } from 'types'
 
-type ClassNames = 'errorContainer' | 'errorIndicatorIcon' | 'errorTitle' | 'errorContent' | 'errorMessage';
+import useStyles from './ErrorMessage.styles'
 
-const styles: StyleRulesCallback<ClassNames> = (theme: Theme) => ({
-  errorContainer: {
-    display: 'flex',
-    flexFlow: 'row',
-    justifyContent: 'space-between',
-    margin: '.5em 0'
-  },
-  errorIndicatorIcon: {
-    flex: '1',
-    margin: '0 .3em 0 0',
-    minWidth: '.5em',
-    background: theme.palette.error.main,
-    color: 'white',
-    textAlign: 'center'
-  },
-  errorContent: {
-    flex: '0 0 95%',
-    padding: '0 .5em .5em 0'
-  },
-  errorTitle: {
-    marginTop: theme.spacing.unit,
-    marginBottom: theme.spacing.unit
-  },
-  errorMessage: {
-    whiteSpace: 'pre-wrap',
-    margin: '0'
-  }
-});
-
-interface IProps extends WithStyles<typeof styles> {
-  error: IError;
+interface IProps {
+  error: IError
 }
 
-class ErrorMessage extends React.PureComponent<IProps> {
+const ErrorMessage: React.FC<IProps> = props => {
+  const classes = useStyles()
 
-  public constructor(props: IProps) {
-    super(props);
-  }
+  const { error } = props
 
-  public render() {
-    const { classes } = this.props;
-
-    return (
-      <Paper className={classes.errorContainer}>
-        <Typography variant="display3" className={classes.errorIndicatorIcon}>
-          !
-          </Typography>
-        <div className={classes.errorContent}>
-          <Typography variant="title" gutterBottom={true} className={classes.errorTitle}>
-            {this.props.error.title || 'Oh no!'}
-          </Typography>
-          <Typography variant="body2">
-            <p className={classes.errorMessage}>{this.props.error.message}</p>
-          </Typography>
-        </div>
-      </Paper>
-    );
-  }
+  return (
+    <Paper className={classes.errorContainer}>
+      <Typography variant="h2" className={classes.errorIndicatorIcon}>
+        !
+      </Typography>
+      <div className={classes.errorContent}>
+        <Typography variant="h3" gutterBottom={true} className={classes.errorTitle}>
+          {error.title || 'Oh no!'}
+        </Typography>
+        <Typography variant="h4">
+          <p className={classes.errorMessage}>{error.message}</p>
+        </Typography>
+      </div>
+    </Paper>
+  )
 }
 
-export default withStyles(styles, { withTheme: true })(ErrorMessage);
+export default ErrorMessage

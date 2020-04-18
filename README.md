@@ -1,4 +1,4 @@
-# hatsuportal
+# portalbase
 
 ## Development environment installation (Windows)
 
@@ -21,15 +21,13 @@
 - `http://localhost/docs/` should now answer with swagger documentation
 - `http://localhost:8080/` should now answer with PostgreSQL Adminer. (_see credentials from docker-compose.yml_)
 - `http://localhost` should now answer with React UI
-- **_DISCLAIMER: note that in the API project, nodemon only updates dependency changes trough the ./src/server.ts inclusion hierarchy (_see nodemon.json file_), but does not run for example commands like `tsoa swagger` or `tsoa routes`. To make sure all changes are deployed to server, run `npm build`, `docker-compose down` and finally `docker-compose up` to generate all files and deploy them to the server._**
-
+- **_DISCLAIMER: note that in the API project, nodemon only updates dependency changes trough the ./src/server.ts inclusion hierarchy (\_see nodemon.json file_), but does not run for example commands like `tsoa swagger` or `tsoa routes`. To make sure all changes are deployed to server, run `npm run build` under `api` project, then `docker-compose down` and finally `docker-compose up` in the root, to generate all files and deploy them to the server.\_**
 
 ## Destroying development environment
 
 - Navigate to project root
 - Run `sh uninstall.sh` (removes node_modules folders, kills and destroys all docker containers, deletes all images and removes all not used volumes.
 - **_DISLAIMER: If you have other docker projects on your machine, this will destroy them too!!_**
-
 
 ## Using SwaggerUI
 
@@ -65,7 +63,7 @@
 
 ## Troubleshooting
 
-$ docker-volume-watcher \
+\$ docker-volume-watcher \
 `WARNING:root:No mounts match container name pattern * and host directory pattern *`
 
 - SOLUTION: you have not started docker-compose with `docker-compose up`

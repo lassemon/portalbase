@@ -1,65 +1,48 @@
-import { fetchTags } from 'actions/tags';
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { Action, bindActionCreators, Dispatch } from 'redux';
-import { IRootState, ITag } from 'types';
-import Tags from './Tags';
-import TagsEdit from './TagsEdit';
+import { fetchTags } from 'actions/tags'
+import React, { useEffect } from 'react'
+import { connect } from 'react-redux'
+import { Action, bindActionCreators, Dispatch } from 'redux'
+import { IRootState, ITag } from 'types'
+
+import Tags from './Tags'
+import TagsEdit from './TagsEdit'
 
 interface IActionProps {
-  fetchTags: typeof fetchTags;
+  fetchTags: typeof fetchTags
 }
 
 interface IProps {
-  edit?: boolean;
-  tags: ITag[];
-  tagsChanged?: (tags: ITag[]) => void;
+  edit?: boolean
+  tags: ITag[]
+  tagsChanged?: (tags: ITag[]) => void
 }
 
 interface IPartialGlobalStateProps {
-  allTags: ITag[];
+  allTags: ITag[]
 }
 
-class TagsContainer extends React.Component<IActionProps & IPartialGlobalStateProps & IProps> {
+const TagsContainer: React.FC<IActionProps & IPartialGlobalStateProps & IProps> = props => {
+  const { fetchTags, tags, allTags, edit, tagsChanged } = props
 
-  public constructor(props: IActionProps & IPartialGlobalStateProps & IProps) {
-    super(props);
-  }
+  useEffect(() => {
+    fetchTags()
+  }, [fetchTags])
 
-  public componentDidMount() {
-    this.props.fetchTags();
-  }
-
-  public render() {
-    return (
-      this.props.edit ?
-        (
-          <TagsEdit
-            tags={this.props.tags}
-            tagSuggestions={this.props.allTags}
-            edit={this.props.edit}
-            tagsChanged={this.props.tagsChanged!} />
-        ) : (
-          <Tags tags={this.props.tags} />
-        )
-    );
-  }
+  return edit ? (
+    <TagsEdit tags={tags} tagSuggestions={allTags} edit={edit} tagsChanged={tagsChanged!} />
+  ) : (
+    <Tags tags={tags} />
+  )
 }
 
 const mapStateToProps = (state: IRootState): IPartialGlobalStateProps => {
   return {
     allTags: state.tags.tags
-  };
-};
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>): IActionProps => {
-  return bindActionCreators(
-    { fetchTags },
-    dispatch
-  );
-};
+  return bindActionCreators({ fetchTags }, dispatch)
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(TagsContainer);
+export default connect(mapStateToProps, mapDispatchToProps)(TagsContainer)

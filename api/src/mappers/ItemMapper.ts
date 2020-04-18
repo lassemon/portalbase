@@ -1,6 +1,7 @@
 import { IDBItem, IItem } from 'interfaces/item'
 import { IItemInsertQuery, IItemInsertRequest, IItemUpdateQuery, IItemUpdateRequest } from 'interfaces/requests'
 import { IItemResponse } from 'interfaces/responses'
+
 import TagMapper from './TagMapper'
 
 export default class ItemMapper {

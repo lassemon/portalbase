@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "baseUrl": "./src",
     "target": "es6",
     "lib": ["es6", "dom"],
     "types": ["node", "express", "jest"],
@@ -10,11 +11,11 @@
     "sourceMap": true,
     "declaration": true,
     "outDir": "dist",
-    "baseUrl": "./src",
     "noImplicitAny": false,
     "typeRoots": ["node_modules/@types"],
     "paths": {
       "*": ["*"]
     }
-  }
+  },
+  "exclude": ["node_modules", "**/*.spec.ts", "src/security/passport-auth-template.ts"]
 }

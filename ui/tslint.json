@@ -1,21 +1,10 @@
 {
-  "extends": [
-    "tslint:recommended",
-    "tslint-react",
-    "tslint-config-prettier",
-    "tslint-plugin-prettier"
-  ],
+  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier", "tslint-plugin-prettier"],
   "linterOptions": {
-    "exclude": [
-      "config/**/*.js",
-      "node_modules/**/*.ts"
-    ]
+    "exclude": ["config/**/*.js", "node_modules/**/*.ts"]
   },
   "rules": {
-    "semicolon": [
-      true,
-      "always"
-    ],
+    "semicolon": [false, "always"],
     "trailing-comma": [
       true,
       {
@@ -25,12 +14,7 @@
     ],
     "no-any": true,
     "object-literal-sort-keys": false,
-    "interface-name": [
-      false,
-      "always-prefix"
-    ],
-    "prettier": [
-      true
-    ]
+    "interface-name": [false, "always-prefix"],
+    "prettier": [true]
   }
 }

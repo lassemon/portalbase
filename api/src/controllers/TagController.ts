@@ -2,6 +2,7 @@ import TagMapper from 'mappers/TagMapper'
 import TagService from 'services/TagService'
 import { Body, Controller, Delete, Get, Post, Put, Response, Route, Security, SuccessResponse, Tags } from 'tsoa'
 import Logger from 'utils/Logger'
+
 import { ITagInsertRequest, ITagUpdateRequest } from '../interfaces/requests'
 import { ITagResponse } from '../interfaces/responses'
 

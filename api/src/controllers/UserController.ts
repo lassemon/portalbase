@@ -20,6 +20,7 @@ import {
   Tags
 } from 'tsoa'
 import Logger from 'utils/Logger'
+
 import { ILoginRequest, IUserInsertRequest, IUserUpdateRequest } from '../interfaces/requests'
 import { IUserResponse } from '../interfaces/responses'
 import { IUser } from '../interfaces/user'

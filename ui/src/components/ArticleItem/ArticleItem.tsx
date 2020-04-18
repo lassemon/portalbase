@@ -1,40 +1,29 @@
-import { StyleRulesCallback, Theme, Typography, WithStyles, withStyles } from '@material-ui/core';
-import * as React from 'react';
-import { IItem } from 'types';
+import { Typography } from '@material-ui/core'
+import React from 'react'
+import { IItem } from 'types'
 
-type ClassNames = 'description' | 'content';
+import useStyles from './ArticleItem.styles'
 
-const styles: StyleRulesCallback<ClassNames> = (theme: Theme) => ({
-  description: {
-    marginBottom: 12
-  },
-  content: {
-    whiteSpace: 'pre-wrap'
-  }
-});
-
-interface IProps extends WithStyles<typeof styles> {
-  item: IItem;
+interface IProps {
+  item: IItem
 }
 
-class ArticleItem extends React.PureComponent<IProps> {
+const ArticleItem: React.FC<IProps> = props => {
+  const classes = useStyles()
 
-  public item: IItem = this.props.item;
+  const { item } = props
 
-  public constructor(props: IProps) {
-    super(props);
-  }
-
-  public render() {
-    const { classes } = this.props;
-    const item = this.props.item;
-
-    return [
-      <Typography variant="headline" component="h2" key="title">{item.title}</Typography>,
-      <Typography className={classes.description} color="textSecondary" key="description">{item.description}</Typography>,
-      <p key="content" className={"ql-editor " + classes.content} dangerouslySetInnerHTML={{ __html: item.content }} />
-    ];
-  }
+  return (
+    <>
+      <Typography variant="h2" component="h2" key="title">
+        {item.title}
+      </Typography>
+      <Typography className={classes.description} color="textSecondary" key="description">
+        {item.description}
+      </Typography>
+      <p key="content" className={'ql-editor ' + classes.content} dangerouslySetInnerHTML={{ __html: item.content }} />
+    </>
+  )
 }
 
-export default withStyles(styles, { withTheme: true })(ArticleItem);
+export default ArticleItem

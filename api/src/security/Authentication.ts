@@ -1,6 +1,7 @@
+import { PassportStatic } from 'passport'
+import * as express from 'express'
 import { IJwtPayload, IUser } from 'interfaces/user'
 import { isEmpty } from 'lodash'
-import { PassportStatic } from 'passport'
 import { Strategy, StrategyOptions, VerifiedCallback } from 'passport-jwt'
 import UserService from 'services/UserService'
 import { TsoaRoute } from 'tsoa'
@@ -28,7 +29,7 @@ export default class Authentication {
 
       const options: StrategyOptions = {
         jwtFromRequest: cookieExtractor,
-        secretOrKey: process.env.JWT_SECRET
+        secretOrKey: process.env.JWT_SECRET || 'my@#$secret'
       }
 
       this.passport.use(
@@ -56,12 +57,28 @@ export default class Authentication {
   }
 
   public getAuthMiddleware = () => {
-    return (security: TsoaRoute.Security[] = []) => {
-      return this.passport.authenticate('jwt', { session: false })
+    return (scopes: string[], authCallback: (...args: any[]) => any): Promise<void> => {
+      console.log('auth CALLBACK', authCallback)
+      const auth = this.passport.authenticate('jwt', { session: false, scope: scopes }, authCallback)
+      console.log('auth typeof', typeof auth)
+      return auth
     }
   }
 
   public getPassport() {
     return this.passport
   }
+}
+
+export function expressAuthentication(
+  request: express.Request,
+  securityName: string,
+  authMiddleware: (scopes: string[], authCallback: (...args: any[]) => any) => any,
+  authCallback: (...args: any[]) => any,
+  scopes?: string[]
+): Promise<any> {
+  console.log('request body', request.body)
+  console.log('securityName', securityName)
+  console.log('scopes', scopes)
+  return authMiddleware(scopes, authCallback)
 }

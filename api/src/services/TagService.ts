@@ -109,7 +109,7 @@ export default class TagService {
           tag =>
             ({
               item_id: tagsForItemInsert.itemId,
-              tag_id: tag.id
+              tag_id: tag
             } as IItemTagInsertQuery)
         )
       )

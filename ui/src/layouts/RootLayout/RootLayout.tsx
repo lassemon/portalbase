@@ -1,33 +1,18 @@
-import withStyles, { StyleRulesCallback, WithStyles } from '@material-ui/core/styles/withStyles';
-import ErrorModal from 'components/ErrorModal';
-import NavBar from 'components/NavBar';
-import * as React from 'react';
+import NavBar from 'components/NavBar'
+import React from 'react'
 
-type ClassNames = 'root';
+import useStyles from './RootLayout.styles'
 
-const styles: StyleRulesCallback<ClassNames> = theme => ({
-  root: {
-    flexGrow: 1,
-    height: '100%'
-  }
-});
+export const RootLayout: React.FC = props => {
+  const classes = useStyles()
+  const { children } = props
 
-class RootLayout extends React.Component<WithStyles<typeof styles>> {
-
-  public render() {
-    const { classes } = this.props;
-
-    return (
-      <div key="main" className={classes.root} role="main">
-        <ErrorModal>
-          <NavBar />
-          <main>
-            {this.props.children}
-          </main>
-        </ErrorModal>
-      </div>
-    );
-  }
+  return (
+    <main className={classes.root}>
+      <NavBar />
+      <section>{children}</section>
+    </main>
+  )
 }
 
-export default withStyles(styles)(RootLayout);
+export default RootLayout

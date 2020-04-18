@@ -1,232 +1,169 @@
+import 'css/quill-custom.css'
+
 import {
-  Button, Card, CardActions, CardContent, CircularProgress, Divider, Drawer,
-  IconButton, StyleRulesCallback, Typography, withStyles, WithStyles
-} from '@material-ui/core';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
-import MenuList from '@material-ui/core/MenuList';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ClearIcon from '@material-ui/icons/Clear';
-import { clearFetchedItem, clearItemErrors, createItem, deleteItem, toggleManageItem, updateItem } from 'actions/items';
-import classnames from 'classnames';
-import ArticleItemEdit from 'components/ArticleItem/ArticleItemEdit';
-import ErrorMessage from 'components/ErrorMessage';
-import Modal from 'components/Modal';
-import Tags from 'components/Tags';
-import 'css/quill-custom.css';
-import { debounce } from 'lodash';
-import * as React from 'react';
-import { connect } from 'react-redux';
-import { Action, bindActionCreators, Dispatch } from 'redux';
-import styled from 'styled-components';
-import theme from 'theme';
-import { IItem, IItemInsertRequest, IItemUpdateRequest, IRootState, ITag } from 'types';
-import EditableItem from 'utils/EditableItem';
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CircularProgress,
+  Divider,
+  Drawer,
+  IconButton,
+  Typography
+} from '@material-ui/core'
+import ListItemText from '@material-ui/core/ListItemText'
+import MenuItem from '@material-ui/core/MenuItem'
+import MenuList from '@material-ui/core/MenuList'
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft'
+import ChevronRightIcon from '@material-ui/icons/ChevronRight'
+import ClearIcon from '@material-ui/icons/Clear'
+import { clearFetchedItem, clearItemErrors, createItem, deleteItem, toggleManageItem, updateItem } from 'actions/items'
+import classnames from 'classnames'
+import ArticleItemEdit from 'components/ArticleItem/ArticleItemEdit'
+import ErrorMessage from 'components/ErrorMessage'
+import Modal from 'components/Modal'
+import Tags from 'components/Tags'
+import { debounce } from 'lodash'
+import React, { useState } from 'react'
+import { connect } from 'react-redux'
+import { Action, bindActionCreators, Dispatch } from 'redux'
+import { IItem, IItemInsertRequest, IItemUpdateRequest, IRootState, ITag } from 'types'
+import EditableItem from 'utils/EditableItem'
 
-const drawerWidth = 240;
-const closedDrawerWidth = 48;
-
-type ClassNames = 'root' | 'drawerContainer' | 'drawerPaper' | 'card' | 'cardShift' | 'listItem' |
-  'itemHeader' | 'itemDescription' | 'areYouSureTitle' | 'areYouSureActionContainer' | 'actionButton';
-
-const styles: StyleRulesCallback<ClassNames> = () => ({
-  root: {
-    display: 'flex'
-  },
-  drawerContainer: {
-    flex: '0 0 auto'
-  },
-  drawerPaper: {
-    position: 'relative',
-    width: drawerWidth
-  },
-  card: {
-    width: `calc(100% - ${drawerWidth}px)`,
-    transition: theme.transitions.create(['margin', 'width'], {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
-    boxShadow: 'none',
-    borderRadius: 0
-  },
-  cardShift: {
-    marginLeft: closedDrawerWidth - drawerWidth,
-    width: '100%'
-  },
-  listItem: {
-    height: 'auto',
-    paddingLeft: theme.spacing.unit * 2,
-    paddingRight: 0
-  },
-  itemHeader: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
-  },
-  itemDescription: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
-  },
-  areYouSureTitle: {
-    flex: '0 0 100%'
-  },
-  areYouSureActionContainer: {
-    flex: '0 0 100%',
-    textAlign: 'right'
-  },
-  actionButton: {
-    boxShadow: 'none',
-    margin: theme.spacing.unit
-  }
-});
+import useStyles from './ItemManage.styles'
 
 interface IActionProps {
-  createItem: typeof createItem;
-  updateItem: typeof updateItem;
-  deleteItem: typeof deleteItem;
-  clearItemErrors: typeof clearItemErrors;
-  clearFetchedItem: typeof clearFetchedItem;
-  toggleManageItem: typeof toggleManageItem;
+  createItem: typeof createItem
+  updateItem: typeof updateItem
+  deleteItem: typeof deleteItem
+  clearItemErrors: typeof clearItemErrors
+  clearFetchedItem: typeof clearFetchedItem
+  toggleManageItem: typeof toggleManageItem
 }
 
 interface IStateProps {
-  loadingItemUpdate: boolean;
-  itemUpdateError: boolean;
-  loadingItemInsert: boolean;
-  itemInsertError: boolean;
-  managingItem: boolean;
-  loggedIn: boolean;
+  loadingItemUpdate?: boolean
+  itemUpdateError?: boolean
+  loadingItemInsert?: boolean
+  itemInsertError?: boolean
+  managingItem?: boolean
+  loggedIn?: boolean
 }
 
-interface IProps extends WithStyles<typeof styles> {
-  items: IItem[];
+interface IProps {
+  items: IItem[]
 }
 
-interface IState {
-  drawerOpen: boolean;
-  deletingItem: boolean;
-  item: EditableItem;
-  deleteCandidate?: IItem;
-  itemNotValidError: boolean;
-}
+const ItemManage: React.FC<IActionProps & IStateProps & IProps> = props => {
+  const classes = useStyles()
 
-class ItemManage extends React.Component<IActionProps & IStateProps & IProps, IState> {
+  const {
+    items,
+    toggleManageItem,
+    clearFetchedItem,
+    managingItem = false,
+    loggedIn = false,
+    updateItem,
+    deleteItem,
+    createItem,
+    loadingItemInsert = false,
+    itemInsertError = false,
+    loadingItemUpdate = false,
+    itemUpdateError = false
+  } = props
 
-  public itemChanged = debounce((newItem: EditableItem) => {
-    this.clearErrors();
-    this.setState({
-      item: Object.assign(this.state.item, newItem)
-    });
-  }, 250, { 'maxWait': 1000 });
+  const [drawerOpen, setDrawerOpen] = useState(true)
+  const [deletingItem, setDeletingItem] = useState(false)
+  const [itemNotValidError, setItemNotValidError] = useState(false)
+  const [item, setItem] = useState(new EditableItem({}))
+  const [deleteCandidate, setDeleteCandidate] = useState<IItem>()
 
-  public constructor(props: IActionProps & IStateProps & IProps) {
-    super(props);
+  const itemChanged = debounce(
+    (newItem: EditableItem) => {
+      clearErrors()
+      setItem(Object.assign(item, newItem))
+    },
+    250,
+    { maxWait: 1000 }
+  )
 
-    const editableItem = new EditableItem({});
-
-    this.state = {
-      drawerOpen: true,
-      deletingItem: false,
-      itemNotValidError: false,
-      item: editableItem
-    };
+  const findItem = (itemId: number) => {
+    return items.find(item => item.id === itemId)
   }
 
-  public findItem = (itemId: number) => {
-    return this.props.items.find(item => item.id === itemId);
-  }
-
-
-  public itemClicked = (itemId: number) => () => {
-    if (this.state.item.id !== itemId) {
-      const selectedItem = this.findItem(itemId);
+  const itemClicked = (itemId: number) => () => {
+    if (item.id !== itemId) {
+      const selectedItem = findItem(itemId)
       if (selectedItem) {
-        this.props.toggleManageItem(true);
-        this.setState(() => {
-          return {
-            item: new EditableItem(selectedItem || {})
-          };
-        });
+        toggleManageItem(true)
+        setItem(new EditableItem(selectedItem || {}))
       }
     }
   }
 
-  public itemDelete = (item: IItem) => (event: React.MouseEvent<HTMLElement>) => {
-    event.preventDefault();
-    event.stopPropagation();
-    this.setState({
-      deletingItem: true,
-      deleteCandidate: item
-    });
+  const itemDelete = (item: IItem) => (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setDeletingItem(true)
+    setDeleteCandidate(item)
   }
 
-  public handleDrawerToggle = () => {
-    this.setState({ drawerOpen: !this.state.drawerOpen });
+  const handleDrawerToggle = () => {
+    setDrawerOpen(!drawerOpen)
   }
 
-  public newItem = () => {
-    this.clearErrors();
-    this.props.clearFetchedItem();
-    this.props.toggleManageItem(false);
-    this.clearItem();
+  const newItem = () => {
+    clearErrors()
+    clearFetchedItem()
+    toggleManageItem(false)
+    clearItem()
   }
 
-  public clearItem = () => {
-    this.setState({
-      item: new EditableItem({})
-    });
+  const clearItem = () => {
+    setItem(new EditableItem({}))
   }
 
-  public tagsChanged = (tags: ITag[]) => {
-    this.clearErrors();
-    const newItem = new EditableItem(this.state.item || {});
-    newItem.tags = tags;
-    this.setState({
-      item: newItem
-    });
+  const tagsChanged = (tags: ITag[]) => {
+    clearErrors()
+    const newItem = new EditableItem(item || {})
+    newItem.tags = tags
+    setItem(newItem)
   }
 
-  public cancel = () => {
-    this.setState({
-      deletingItem: false,
-      deleteCandidate: undefined
-    });
+  const cancel = () => {
+    setDeletingItem(false)
+    setDeleteCandidate(undefined)
   }
 
-  public saveItem = () => {
-    this.clearErrors();
-    this.setState({
-      itemNotValidError: false
-    });
+  const saveItem = () => {
+    clearErrors()
+    setItemNotValidError(false)
 
-    const item = this.state.item;
     if (!item.hasErrors()) {
-      if (this.props.managingItem) {
-        this.props.updateItem(this.createUpdatePayload(item));
+      if (managingItem) {
+        updateItem(createUpdatePayload(item))
       } else {
-        this.props.createItem(this.createInsertPayload(item));
+        createItem(createInsertPayload(item))
       }
     } else {
-      this.setState({
-        item: new EditableItem(item || {}).validateAll(),
-        itemNotValidError: true
-      });
+      setItem(new EditableItem(item || {}).validateAll())
+      setItemNotValidError(true)
     }
   }
 
-  public createInsertPayload = (item: EditableItem): IItemInsertRequest => {
+  const createInsertPayload = (item: EditableItem): IItemInsertRequest => {
     return {
       type: 'article',
       title: item.title,
       description: item.description,
       content: item.content,
       tags: item.tags.map(tag => tag.id)
-    };
+    }
   }
 
-  public createUpdatePayload = (item: EditableItem): IItemUpdateRequest => {
-    const tagUpdate = item.tags ? item.tags.map(tag => tag.id) : [];
-    const completeItem = this.findItem(item.id);
+  const createUpdatePayload = (item: EditableItem): IItemUpdateRequest => {
+    const tagUpdate = item.tags ? item.tags.map(tag => tag.id) : []
+    const completeItem = findItem(item.id)
     if (item && completeItem) {
       return {
         id: completeItem.id,
@@ -235,126 +172,120 @@ class ItemManage extends React.Component<IActionProps & IStateProps & IProps, IS
         description: item.description,
         content: item.content,
         tags: tagUpdate
-      };
-    } else {
-      throw new Error("Item is not valid for update");
-    }
-  }
-
-  public deleteItem = () => {
-    if (this.state.deleteCandidate) {
-      this.setState({
-        deletingItem: false,
-        deleteCandidate: undefined
-      });
-      this.props.deleteItem(this.state.deleteCandidate.id);
-    }
-  }
-
-  public clearErrors = () => {
-    this.props.clearItemErrors();
-    this.setState({
-      itemNotValidError: false
-    });
-  }
-
-  public render() {
-    const items = this.props.items || [];
-    const { classes } = this.props;
-
-    const StyledList = styled(MenuList)`
-      > li + li {
-        border-top: 1px solid ${theme.palette.divider};
       }
-    `;
-
-    const convertedItems = items.map((item: IItem, index: number) => {
-      return (
-        <MenuItem
-          selected={this.state.item && item.id === this.state.item.id}
-          button={true}
-          className={classes.listItem}
-          key={index}
-          onClick={this.itemClicked(item.id)}>
-          <ListItemText
-            primary={item.title}
-            secondary={item.description}
-            classes={{ primary: classes.itemHeader, secondary: classes.itemDescription }}
-          />
-          <IconButton color="inherit" aria-label="Menu" onClick={this.itemDelete(item)}>
-            <ClearIcon />
-          </IconButton>
-        </MenuItem>
-      );
-    });
-
-    const areYouSureDialog = (
-      <Modal open={this.state.deletingItem}>
-        <Typography className={classes.areYouSureTitle} variant="body2" gutterBottom={true}>
-          Are you sure you want to delete item <strong>{this.state.deleteCandidate ? this.state.deleteCandidate.title : ''}</strong>?
-        </Typography>
-        <div className={classes.areYouSureActionContainer}>
-          <Button size="small" color="secondary" variant="contained" className={classes.actionButton} onClick={this.cancel}>Cancel</Button>
-          <Button size="small" color="primary" variant="contained" className={classes.actionButton} onClick={this.deleteItem}>Delete</Button>
-        </div>
-      </Modal>
-    );
-
-    const currentItemEqualsSavedItem = EditableItem.equals(this.state.item, new EditableItem(this.findItem(this.state.item.id) || {}));
-    const saveButtonDisabled = this.props.loadingItemInsert || this.props.loadingItemUpdate || currentItemEqualsSavedItem;
-
-    return (
-      <div className={classes.root}>
-        <div className={classes.drawerContainer}>
-          <IconButton onClick={this.handleDrawerToggle}>
-            {this.state.drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-          </IconButton>
-          <Divider />
-          <Drawer
-            variant="persistent"
-            anchor={'left'}
-            open={this.state.drawerOpen}
-            classes={{
-              paper: classes.drawerPaper
-            }}
-          >
-            <StyledList>
-              {(
-                convertedItems
-              )}
-            </StyledList>
-            <Divider />
-            <Button size="small" color="primary" variant="contained" className={classes.actionButton} onClick={this.newItem}>New Item</Button>
-          </Drawer>
-        </div>
-        <Card className={classnames(classes.card, {
-          [classes.cardShift]: !this.state.drawerOpen
-        })}>
-          <CardContent>
-            <ArticleItemEdit item={this.state.item} itemChanged={this.itemChanged} />
-            <Tags tags={this.state.item.tags} edit={true} tagsChanged={this.tagsChanged} />
-            {this.state.itemNotValidError && <ErrorMessage error={{ message: 'Item is not valid' }} />}
-            {this.props.itemInsertError && <ErrorMessage error={{ message: 'Item insert failed' }} />}
-            {this.props.itemUpdateError && <ErrorMessage error={{ message: 'Item update failed' }} />}
-          </CardContent>
-          <CardActions>
-            <Button
-              size="small"
-              color="primary"
-              variant="contained"
-              className={classes.actionButton}
-              onClick={this.saveItem}
-              disabled={saveButtonDisabled}
-            >
-              Save
-            </Button>
-          </CardActions>
-          {this.props.loadingItemInsert || this.props.loadingItemUpdate && <CircularProgress size={25} />}
-        </Card>
-        {areYouSureDialog}
-      </div>
-    );
+    } else {
+      throw new Error('Item is not valid for update')
+    }
   }
+
+  const internalDeleteItem = () => {
+    if (deleteCandidate) {
+      setDeletingItem(false)
+      setDeleteCandidate(undefined)
+      deleteItem(deleteCandidate.id)
+    }
+  }
+
+  const clearErrors = () => {
+    clearItemErrors()
+    setItemNotValidError(false)
+  }
+
+  const convertedItems = items.map((_item: IItem, index: number) => {
+    return (
+      <MenuItem
+        selected={_item && _item.id === _item.id}
+        button={true}
+        className={classes.listItem}
+        key={index}
+        onClick={itemClicked(_item.id)}
+      >
+        <ListItemText
+          primary={_item.title}
+          secondary={_item.description}
+          classes={{ primary: classes.itemHeader, secondary: classes.itemDescription }}
+        />
+        <IconButton color="inherit" aria-label="Menu" onClick={itemDelete(_item)}>
+          <ClearIcon />
+        </IconButton>
+      </MenuItem>
+    )
+  })
+
+  const areYouSureDialog = (
+    <Modal open={deletingItem}>
+      <Typography className={classes.areYouSureTitle} variant="body2" gutterBottom={true}>
+        Are you sure you want to delete item <strong>{deleteCandidate ? deleteCandidate.title : ''}</strong>?
+      </Typography>
+      <div className={classes.areYouSureActionContainer}>
+        <Button size="small" color="secondary" variant="contained" className={classes.actionButton} onClick={cancel}>
+          Cancel
+        </Button>
+        <Button
+          size="small"
+          color="primary"
+          variant="contained"
+          className={classes.actionButton}
+          onClick={internalDeleteItem}
+        >
+          Delete
+        </Button>
+      </div>
+    </Modal>
+  )
+
+  const currentItemEqualsSavedItem = EditableItem.equals(item, new EditableItem(findItem(item.id) || {}))
+  const saveButtonDisabled = loadingItemInsert || loadingItemUpdate || currentItemEqualsSavedItem
+
+  return (
+    <div className={classes.root}>
+      <div className={classes.drawerContainer}>
+        <IconButton onClick={handleDrawerToggle}>{drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}</IconButton>
+        <Divider />
+        <Drawer
+          variant="persistent"
+          anchor={'left'}
+          open={drawerOpen}
+          classes={{
+            paper: classes.drawerPaper
+          }}
+        >
+          <MenuList className={classes.menuList}>{convertedItems}</MenuList>
+          <Divider />
+          <Button size="small" color="primary" variant="contained" className={classes.actionButton} onClick={newItem}>
+            New Item
+          </Button>
+        </Drawer>
+      </div>
+      <Card
+        className={classnames(classes.card, {
+          [classes.cardShift]: !drawerOpen
+        })}
+      >
+        <CardContent>
+          <ArticleItemEdit item={item} itemChanged={itemChanged} />
+          <Tags tags={item.tags} edit={true} tagsChanged={tagsChanged} />
+          {itemNotValidError && <ErrorMessage error={{ message: 'Item is not valid' }} />}
+          {itemInsertError && <ErrorMessage error={{ message: 'Item insert failed' }} />}
+          {itemUpdateError && <ErrorMessage error={{ message: 'Item update failed' }} />}
+        </CardContent>
+        <CardActions>
+          <Button
+            size="small"
+            color="primary"
+            variant="contained"
+            className={classes.actionButton}
+            onClick={saveItem}
+            disabled={saveButtonDisabled}
+          >
+            Save
+          </Button>
+        </CardActions>
+        {loadingItemInsert || (loadingItemUpdate && <CircularProgress size={25} />)}
+      </Card>
+      {areYouSureDialog}
+    </div>
+  )
 }
 
 const mapStateToProps = (state: IRootState): Partial<IStateProps> => {
@@ -365,18 +296,14 @@ const mapStateToProps = (state: IRootState): Partial<IStateProps> => {
     itemInsertError: state.items.itemInsertError,
     managingItem: state.items.managingItem,
     loggedIn: state.auth.loggedIn
-  };
-};
-
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch<Action>): IActionProps => {
   return bindActionCreators(
     { updateItem, createItem, deleteItem, clearItemErrors, clearFetchedItem, toggleManageItem },
     dispatch
-  );
-};
+  )
+}
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps
-)(withStyles(styles, { withTheme: true })(ItemManage));
+export default connect(mapStateToProps, mapDispatchToProps)(ItemManage)

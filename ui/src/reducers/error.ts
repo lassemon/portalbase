@@ -1,20 +1,16 @@
+import { ErrorAction, GLOBAL_ERROR } from 'actions/error'
+import { IErrorState } from 'types'
 
-import {
-  ErrorAction,
-  GLOBAL_ERROR
-} from 'actions/error';
-import { IErrorState } from 'types';
+const initialState = {}
 
-const initialState = {};
-
-export default (state: IErrorState = initialState, action: ErrorAction) => {
+export default (state: IErrorState = initialState, action: ErrorAction): IErrorState => {
   switch (action.type) {
     case GLOBAL_ERROR:
       return {
         ...state,
         globalError: action.payload
-      };
+      }
     default:
-      return state;
+      return state
   }
-};
+}
