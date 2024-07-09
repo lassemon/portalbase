@@ -1,0 +1,26 @@
+{
+  "name": "@portalbase/application",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./lib/index.js"
+    }
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@portalbase/common": "^1.0.0",
+    "@portalbase/domain": "^1.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/lodash": "^4.17.4",
+    "bcryptjs": "^2.4.3",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
